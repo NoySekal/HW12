@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}
+    Assignment9
+{% endblock %}
+{% block tohen %}
+    {{ super() }}
+    <h1>Search</h1>
+        <form action="/assignment9" method="get">
+            User Name: <input name="UserName" type="text">
+            <input type="submit">
+        </form>
+        {% if session.UserName %}
+             <h1>  Log in | {{ session.UserName }}</h1>
+        {% endif %}
+        {% if p_username %}
+            <h3>You searched User Name: {{p_username}}</h3>
+            <h3>Result:</h3>
+            {% if p_fname and p_email %}
+                <h5>Email: {{p_email}}</h5>
+                <h5>First Name: {{p_fname}}</h5>
+            {% else %}
+                <h3>Not Found</h3>
+                {% for key, value in p_users_db.items() %}
+                    <h5>User Name: {{ key }}, Name: {{ value.fname }}, Email: {{value.Email}}, Phone: {{value.Phone}}</h5>
+                {% endfor %}
+            {% endif %}
+        {% else %}
+            {% if p_submit %}
+            {% endif %}
+        {% endif %}
+    <h1>registration:</h1>
+        <form action="/assignment9" method="post">
+        {% if (not p_registration)%}
+            User Name: <input name="UserName" type="text"> <br/><br/>
+            Email:<input name="Email" type="Email" ><br/><br/>
+            Phone:<input name="Phone" type="" ><br/><br/>
+            Password:<input name="Password" type="password" ><br/><br/>
+            Confirm Password:<input name="Confirm Password" type="password" ><br/><br/>
+            <input type="submit">
+        {% endif %}
+        </form>
+{% endblock %}

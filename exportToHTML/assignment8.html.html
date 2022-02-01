@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>assignment8.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #a9b7c6;}
+.s1 { color: #e8bf6a;}
+.s2 { color: #6a8759;}
+.s3 { color: #a9b7c6;}
+.s4 { color: #bababa;}
+.s5 { color: #e8bf6a;}
+.s6 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+assignment8.html</font>
+</center></td></tr></table>
+<pre><span class="s0">{% </span><span class="s1">extends </span><span class="s2">'base.html' </span><span class="s0">%}</span>
+<span class="s0">{% </span><span class="s1">block </span><span class="s4">title </span><span class="s0">%}</span>
+    <span class="s3">About</span>
+<span class="s0">{% </span><span class="s1">endblock </span><span class="s0">%}</span>
+<span class="s0">{% </span><span class="s1">block </span><span class="s4">tohen </span><span class="s0">%}</span>
+    <span class="s0">{{ </span><span class="s4">super</span><span class="s0">() }}</span>
+        <span class="s5">&lt;h1&gt; </span><span class="s3">About me...</span><span class="s5">&lt;/h1&gt;</span>
+    <span class="s0">{% </span><span class="s1">for </span><span class="s4">key</span><span class="s0">, </span><span class="s4">value </span><span class="s6">in </span><span class="s4">profile</span><span class="s0">.</span><span class="s4">items</span><span class="s0">() %}</span>
+        <span class="s5">&lt;h2&gt;</span><span class="s0">{{ </span><span class="s4">key </span><span class="s0">}}</span><span class="s3">: </span><span class="s0">{{ </span><span class="s4">value </span><span class="s0">| </span><span class="s4">lower</span><span class="s0">() }}</span><span class="s5">&lt;/h2&gt;</span>
+        <span class="s5">&lt;br/&gt;</span>
+    <span class="s0">{% </span><span class="s1">endfor</span><span class="s0">%}</span>
+    <span class="s5">&lt;h2&gt;</span><span class="s3">Name: </span><span class="s0">{{ </span><span class="s4">profile</span><span class="s0">.</span><span class="s4">name </span><span class="s0">| </span><span class="s4">default</span><span class="s0">(</span><span class="s2">'unknow'</span><span class="s0">, </span><span class="s4">true</span><span class="s0">) }} {{ </span><span class="s4">profile</span><span class="s0">.</span><span class="s4">second_name </span><span class="s0">| </span><span class="s4">upper</span><span class="s0">() }}</span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s0">{%  </span><span class="s1">if </span><span class="s4">name </span><span class="s0">%}</span>
+        <span class="s5">&lt;h2&gt;</span><span class="s3">Welcome</span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s0">{% </span><span class="s1">else </span><span class="s0">%}</span>
+        <span class="s5">&lt;h2&gt;</span><span class="s3">Please sing in</span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s0">{% </span><span class="s1">endif </span><span class="s0">%}</span>
+    <span class="s5">&lt;h2&gt;</span><span class="s3">University: </span><span class="s0">{{ </span><span class="s4">university </span><span class="s0">| </span><span class="s4">default</span><span class="s0">(</span><span class="s2">'unspecified'</span><span class="s0">)}} </span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s5">&lt;h2&gt;</span><span class="s3">Degrees</span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s5">&lt;ol&gt;</span>
+       <span class="s0">{% </span><span class="s1">for </span><span class="s4">degree </span><span class="s6">in </span><span class="s4">degrees </span><span class="s0">%}</span>
+            <span class="s5">&lt;li&gt;</span><span class="s0">{{  </span><span class="s4">degree </span><span class="s0">}}</span><span class="s5">&lt;/li&gt;</span>
+        <span class="s0">{% </span><span class="s1">endfor </span><span class="s0">%}</span>
+    <span class="s5">&lt;/ol&gt;</span>
+    <span class="s5">&lt;h2&gt;</span><span class="s3">Hobbies</span><span class="s5">&lt;/h2&gt;</span>
+    <span class="s5">&lt;ul&gt;</span>
+        <span class="s0">{% </span><span class="s1">for </span><span class="s4">hobby </span><span class="s6">in </span><span class="s4">hobbies </span><span class="s0">%}</span>
+            <span class="s5">&lt;li&gt;</span><span class="s0">{{  </span><span class="s4">hobby </span><span class="s0">}}</span><span class="s5">&lt;/li&gt;</span>
+        <span class="s0">{% </span><span class="s1">endfor </span><span class="s0">%}</span>
+    <span class="s5">&lt;/ul&gt;</span>
+<span class="s0">{% </span><span class="s1">endblock </span><span class="s0">%}</span></pre>
+</body>
+</html>

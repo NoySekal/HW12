@@ -1,0 +1,64 @@
+body{
+    background-color: #E3D3BB;
+}
+/*rotate image css*/
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+*{
+font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.title {
+    color:#EECB49;
+    background-color: #235866;
+}
+
+#gridContainer{
+    display: grid;
+    grid-template-areas:
+    'header header header'
+    'left left right '
+    'main main main'; }
+#item1{
+    grid-area: header;
+    background-color: #E2A726;
+    }
+#item2{
+    grid-area: left;
+}
+#item3{
+    grid-area: main;
+}
+
+#rotate{
+    grid-area: right;
+    animation-name: rotate;
+    animation-duration: 2s;
+    animation-iteration-count: 5;
+
+    width: 150px;
+    height: 150px;
+}
+
+div div {
+    height: 100px;
+    width: 300px;
+    padding: 20px;
+    margin: 20px;
+    background-color: #F0E9EE;
+}
+
+@media only screen and (max-width: 700px) {
+    #item1{
+        grid-area: header;
+        background-color: #BF6327
+        ;
+        }
+}

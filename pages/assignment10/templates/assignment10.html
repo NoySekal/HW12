@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}
+    Users
+{% endblock %}
+{% block tohen %}
+   <h1>Users Page</h1>
+    <h2>Creat New User </h2>
+    <form action="/creat_new_user" method="post">
+        <input type="text" name="name" placeholder="name">
+        <input type="email" name="email" placeholder="Email">
+     <input type="password" name="password" placeholder="Password">
+    <input type="submit" value="Insert">
+    </form>
+    <hr>
+
+    <h2>Update User Password</h2>
+    <form action="/update_user_password" method="POST">
+     <input name="user_id" type="int" placeholder="User ID:">
+     <input name="last_password" type="text" placeholder="current Password:">
+     <input name="new_password" type="text" placeholder="New Password:">
+    <input type="submit" value="Update">
+    </form>
+    <hr>
+
+    <h2>Delete User</h2>
+    <form action="/delete_user" method="POST">
+     <input name="user_id" type="int" placeholder="User ID:">
+     <input name="password" type="text" placeholder="Password:">
+        <input type="submit" value="Delete">
+    </form><br><br><br>
+
+
+    {% if user_list %}
+        <h2>Users List:</h2>
+        <ul>
+            {% for user in user_list %}
+                <li>
+                    Name: {{ user.name }}, Email: {{user.email}}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+    <form action="/user_list" method="get">
+        <input type="submit" value="Print User list">
+    </form>
+
+    {% endif %}
+
+{% endblock %}

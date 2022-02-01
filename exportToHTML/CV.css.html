@@ -1,0 +1,89 @@
+<html>
+<head>
+<title>CV.css</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #e8bf6a;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bababa;}
+.s3 { color: #a9b7c6;}
+.s4 { color: #6897bb;}
+.s5 { color: #cc7832;}
+.s6 { color: #808080;}
+.s7 { color: #a5c261;}
+.s8 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CV.css</font>
+</center></td></tr></table>
+<pre><span class="s0">body</span><span class="s1">{</span>
+    <span class="s2">background-color</span><span class="s3">: </span><span class="s4">#E3D3BB</span><span class="s5">;</span>
+<span class="s1">}</span>
+<span class="s6">/*rotate image css*/</span>
+<span class="s5">@keyframes </span><span class="s0">rotate </span><span class="s1">{</span>
+    <span class="s0">from </span><span class="s1">{</span>
+        <span class="s2">transform</span><span class="s3">: </span><span class="s0">rotate</span><span class="s1">(</span><span class="s4">0</span><span class="s7">deg</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">}</span>
+    <span class="s0">to </span><span class="s1">{</span>
+        <span class="s2">transform</span><span class="s3">: </span><span class="s0">rotate</span><span class="s1">(</span><span class="s4">360</span><span class="s7">deg</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">*</span><span class="s1">{</span>
+<span class="s2">font-family</span><span class="s3">: </span><span class="s8">'Gill Sans'</span><span class="s5">, </span><span class="s8">'Gill Sans MT'</span><span class="s5">, </span><span class="s0">Calibri</span><span class="s5">, </span><span class="s8">'Trebuchet MS'</span><span class="s5">, </span><span class="s7">sans-serif</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s1">.</span><span class="s0">title </span><span class="s1">{</span>
+    <span class="s2">color</span><span class="s3">:</span><span class="s4">#EECB49</span><span class="s5">;</span>
+    <span class="s2">background-color</span><span class="s3">: </span><span class="s4">#235866</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s0">#gridContainer</span><span class="s1">{</span>
+    <span class="s2">display</span><span class="s3">: </span><span class="s7">grid</span><span class="s5">;</span>
+    <span class="s2">grid-template-areas</span><span class="s3">:</span>
+    <span class="s8">'header header header'</span>
+    <span class="s8">'left left right '</span>
+    <span class="s8">'main main main'</span><span class="s5">; </span><span class="s1">}</span>
+<span class="s0">#item1</span><span class="s1">{</span>
+    <span class="s2">grid-area</span><span class="s3">: </span><span class="s7">header</span><span class="s5">;</span>
+    <span class="s2">background-color</span><span class="s3">: </span><span class="s4">#E2A726</span><span class="s5">;</span>
+    <span class="s1">}</span>
+<span class="s0">#item2</span><span class="s1">{</span>
+    <span class="s2">grid-area</span><span class="s3">: </span><span class="s7">left</span><span class="s5">;</span>
+<span class="s1">}</span>
+<span class="s0">#item3</span><span class="s1">{</span>
+    <span class="s2">grid-area</span><span class="s3">: </span><span class="s0">main</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s0">#rotate</span><span class="s1">{</span>
+    <span class="s2">grid-area</span><span class="s3">: </span><span class="s7">right</span><span class="s5">;</span>
+    <span class="s2">animation-name</span><span class="s3">: </span><span class="s0">rotate</span><span class="s5">;</span>
+    <span class="s2">animation-duration</span><span class="s3">: </span><span class="s4">2</span><span class="s7">s</span><span class="s5">;</span>
+    <span class="s2">animation-iteration-count</span><span class="s3">: </span><span class="s4">5</span><span class="s5">;</span>
+
+    <span class="s2">width</span><span class="s3">: </span><span class="s4">150</span><span class="s7">px</span><span class="s5">;</span>
+    <span class="s2">height</span><span class="s3">: </span><span class="s4">150</span><span class="s7">px</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s0">div div </span><span class="s1">{</span>
+    <span class="s2">height</span><span class="s3">: </span><span class="s4">100</span><span class="s7">px</span><span class="s5">;</span>
+    <span class="s2">width</span><span class="s3">: </span><span class="s4">300</span><span class="s7">px</span><span class="s5">;</span>
+    <span class="s2">padding</span><span class="s3">: </span><span class="s4">20</span><span class="s7">px</span><span class="s5">;</span>
+    <span class="s2">margin</span><span class="s3">: </span><span class="s4">20</span><span class="s7">px</span><span class="s5">;</span>
+    <span class="s2">background-color</span><span class="s3">: </span><span class="s4">#F0E9EE</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s5">@media </span><span class="s0">only </span><span class="s7">screen </span><span class="s0">and </span><span class="s1">(</span><span class="s2">max-width</span><span class="s3">: </span><span class="s4">700</span><span class="s7">px</span><span class="s1">) {</span>
+    <span class="s0">#item1</span><span class="s1">{</span>
+        <span class="s2">grid-area</span><span class="s3">: </span><span class="s7">header</span><span class="s5">;</span>
+        <span class="s2">background-color</span><span class="s3">: </span><span class="s4">#BF6327</span>
+        <span class="s5">;</span>
+        <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

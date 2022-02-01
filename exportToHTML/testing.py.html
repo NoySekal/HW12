@@ -1,0 +1,303 @@
+<html>
+<head>
+<title>testing.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #629755; font-style: italic;}
+.s3 { color: #6a8759;}
+.s4 { color: #a5c261;}
+.s5 { color: #808080;}
+.s6 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+testing.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">typing </span><span class="s0">as </span><span class="s1">t</span>
+<span class="s0">from </span><span class="s1">contextlib </span><span class="s0">import </span><span class="s1">contextmanager</span>
+<span class="s0">from </span><span class="s1">copy </span><span class="s0">import </span><span class="s1">copy</span>
+<span class="s0">from </span><span class="s1">types </span><span class="s0">import </span><span class="s1">TracebackType</span>
+
+<span class="s0">import </span><span class="s1">werkzeug.test</span>
+<span class="s0">from </span><span class="s1">click.testing </span><span class="s0">import </span><span class="s1">CliRunner</span>
+<span class="s0">from </span><span class="s1">werkzeug.test </span><span class="s0">import </span><span class="s1">Client</span>
+<span class="s0">from </span><span class="s1">werkzeug.urls </span><span class="s0">import </span><span class="s1">url_parse</span>
+<span class="s0">from </span><span class="s1">werkzeug.wrappers </span><span class="s0">import </span><span class="s1">Request </span><span class="s0">as </span><span class="s1">BaseRequest</span>
+
+<span class="s0">from </span><span class="s1">. </span><span class="s0">import </span><span class="s1">_request_ctx_stack</span>
+<span class="s0">from </span><span class="s1">.cli </span><span class="s0">import </span><span class="s1">ScriptInfo</span>
+<span class="s0">from </span><span class="s1">.json </span><span class="s0">import </span><span class="s1">dumps </span><span class="s0">as </span><span class="s1">json_dumps</span>
+<span class="s0">from </span><span class="s1">.sessions </span><span class="s0">import </span><span class="s1">SessionMixin</span>
+
+<span class="s0">if </span><span class="s1">t.TYPE_CHECKING:</span>
+    <span class="s0">from </span><span class="s1">.app </span><span class="s0">import </span><span class="s1">Flask</span>
+    <span class="s0">from </span><span class="s1">.wrappers </span><span class="s0">import </span><span class="s1">Response</span>
+
+
+<span class="s0">class </span><span class="s1">EnvironBuilder(werkzeug.test.EnvironBuilder):</span>
+    <span class="s2">&quot;&quot;&quot;An :class:`~werkzeug.test.EnvironBuilder`, that takes defaults from the 
+    application. 
+ 
+    :param app: The Flask application to configure the environment from. 
+    :param path: URL path being requested. 
+    :param base_url: Base URL where the app is being served, which 
+        ``path`` is relative to. If not given, built from 
+        :data:`PREFERRED_URL_SCHEME`, ``subdomain``, 
+        :data:`SERVER_NAME`, and :data:`APPLICATION_ROOT`. 
+    :param subdomain: Subdomain name to append to :data:`SERVER_NAME`. 
+    :param url_scheme: Scheme to use instead of 
+        :data:`PREFERRED_URL_SCHEME`. 
+    :param json: If given, this is serialized as JSON and passed as 
+        ``data``. Also defaults ``content_type`` to 
+        ``application/json``. 
+    :param args: other positional arguments passed to 
+        :class:`~werkzeug.test.EnvironBuilder`. 
+    :param kwargs: other keyword arguments passed to 
+        :class:`~werkzeug.test.EnvironBuilder`. 
+    &quot;&quot;&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__init__(</span>
+        <span class="s1">self</span><span class="s0">,</span>
+        <span class="s1">app: </span><span class="s3">&quot;Flask&quot;</span><span class="s0">,</span>
+        <span class="s1">path: str = </span><span class="s3">&quot;/&quot;</span><span class="s0">,</span>
+        <span class="s1">base_url: t.Optional[str] = </span><span class="s0">None,</span>
+        <span class="s1">subdomain: t.Optional[str] = </span><span class="s0">None,</span>
+        <span class="s1">url_scheme: t.Optional[str] = </span><span class="s0">None,</span>
+        <span class="s1">*args: t.Any</span><span class="s0">,</span>
+        <span class="s1">**kwargs: t.Any</span><span class="s0">,</span>
+    <span class="s1">) -&gt; </span><span class="s0">None</span><span class="s1">:</span>
+        <span class="s0">assert not </span><span class="s1">(base_url </span><span class="s0">or </span><span class="s1">subdomain </span><span class="s0">or </span><span class="s1">url_scheme) </span><span class="s0">or </span><span class="s1">(</span>
+            <span class="s1">base_url </span><span class="s0">is not None</span>
+        <span class="s1">) != bool(</span>
+            <span class="s1">subdomain </span><span class="s0">or </span><span class="s1">url_scheme</span>
+        <span class="s1">)</span><span class="s0">, </span><span class="s3">'Cannot pass &quot;subdomain&quot; or &quot;url_scheme&quot; with &quot;base_url&quot;.'</span>
+
+        <span class="s0">if </span><span class="s1">base_url </span><span class="s0">is None</span><span class="s1">:</span>
+            <span class="s1">http_host = app.config.get(</span><span class="s3">&quot;SERVER_NAME&quot;</span><span class="s1">) </span><span class="s0">or </span><span class="s3">&quot;localhost&quot;</span>
+            <span class="s1">app_root = app.config[</span><span class="s3">&quot;APPLICATION_ROOT&quot;</span><span class="s1">]</span>
+
+            <span class="s0">if </span><span class="s1">subdomain:</span>
+                <span class="s1">http_host = </span><span class="s3">f&quot;</span><span class="s0">{</span><span class="s1">subdomain</span><span class="s0">}</span><span class="s3">.</span><span class="s0">{</span><span class="s1">http_host</span><span class="s0">}</span><span class="s3">&quot;</span>
+
+            <span class="s0">if </span><span class="s1">url_scheme </span><span class="s0">is None</span><span class="s1">:</span>
+                <span class="s1">url_scheme = app.config[</span><span class="s3">&quot;PREFERRED_URL_SCHEME&quot;</span><span class="s1">]</span>
+
+            <span class="s1">url = url_parse(path)</span>
+            <span class="s1">base_url = (</span>
+                <span class="s3">f&quot;</span><span class="s0">{</span><span class="s1">url.scheme </span><span class="s0">or </span><span class="s1">url_scheme</span><span class="s0">}</span><span class="s3">://</span><span class="s0">{</span><span class="s1">url.netloc </span><span class="s0">or </span><span class="s1">http_host</span><span class="s0">}</span><span class="s3">&quot;</span>
+                <span class="s3">f&quot;/</span><span class="s0">{</span><span class="s1">app_root.lstrip(</span><span class="s3">'/'</span><span class="s1">)</span><span class="s0">}</span><span class="s3">&quot;</span>
+            <span class="s1">)</span>
+            <span class="s1">path = url.path</span>
+
+            <span class="s0">if </span><span class="s1">url.query:</span>
+                <span class="s1">sep = </span><span class="s4">b&quot;?&quot; </span><span class="s0">if </span><span class="s1">isinstance(url.query</span><span class="s0">, </span><span class="s1">bytes) </span><span class="s0">else </span><span class="s3">&quot;?&quot;</span>
+                <span class="s1">path += sep + url.query</span>
+
+        <span class="s1">self.app = app</span>
+        <span class="s1">super().__init__(path</span><span class="s0">, </span><span class="s1">base_url</span><span class="s0">, </span><span class="s1">*args</span><span class="s0">, </span><span class="s1">**kwargs)</span>
+
+    <span class="s0">def </span><span class="s1">json_dumps(self</span><span class="s0">, </span><span class="s1">obj: t.Any</span><span class="s0">, </span><span class="s1">**kwargs: t.Any) -&gt; str:  </span><span class="s5"># type: ignore</span>
+        <span class="s2">&quot;&quot;&quot;Serialize ``obj`` to a JSON-formatted string. 
+ 
+        The serialization will be configured according to the config associated 
+        with this EnvironBuilder's ``app``. 
+        &quot;&quot;&quot;</span>
+        <span class="s1">kwargs.setdefault(</span><span class="s3">&quot;app&quot;</span><span class="s0">, </span><span class="s1">self.app)</span>
+        <span class="s0">return </span><span class="s1">json_dumps(obj</span><span class="s0">, </span><span class="s1">**kwargs)</span>
+
+
+<span class="s0">class </span><span class="s1">FlaskClient(Client):</span>
+    <span class="s2">&quot;&quot;&quot;Works like a regular Werkzeug test client but has some knowledge about 
+    how Flask works to defer the cleanup of the request context stack to the 
+    end of a ``with`` body when used in a ``with`` statement.  For general 
+    information about how to use this class refer to 
+    :class:`werkzeug.test.Client`. 
+ 
+    .. versionchanged:: 0.12 
+       `app.test_client()` includes preset default environment, which can be 
+       set after instantiation of the `app.test_client()` object in 
+       `client.environ_base`. 
+ 
+    Basic usage is outlined in the :doc:`/testing` chapter. 
+    &quot;&quot;&quot;</span>
+
+    <span class="s1">application: </span><span class="s3">&quot;Flask&quot;</span>
+    <span class="s1">preserve_context = </span><span class="s0">False</span>
+
+    <span class="s0">def </span><span class="s1">__init__(self</span><span class="s0">, </span><span class="s1">*args: t.Any</span><span class="s0">, </span><span class="s1">**kwargs: t.Any) -&gt; </span><span class="s0">None</span><span class="s1">:</span>
+        <span class="s1">super().__init__(*args</span><span class="s0">, </span><span class="s1">**kwargs)</span>
+        <span class="s1">self.environ_base = {</span>
+            <span class="s3">&quot;REMOTE_ADDR&quot;</span><span class="s1">: </span><span class="s3">&quot;127.0.0.1&quot;</span><span class="s0">,</span>
+            <span class="s3">&quot;HTTP_USER_AGENT&quot;</span><span class="s1">: </span><span class="s3">f&quot;werkzeug/</span><span class="s0">{</span><span class="s1">werkzeug.__version__</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s0">,</span>
+        <span class="s1">}</span>
+
+    <span class="s1">@contextmanager</span>
+    <span class="s0">def </span><span class="s1">session_transaction(</span>
+        <span class="s1">self</span><span class="s0">, </span><span class="s1">*args: t.Any</span><span class="s0">, </span><span class="s1">**kwargs: t.Any</span>
+    <span class="s1">) -&gt; t.Generator[SessionMixin</span><span class="s0">, None, None</span><span class="s1">]:</span>
+        <span class="s2">&quot;&quot;&quot;When used in combination with a ``with`` statement this opens a 
+        session transaction.  This can be used to modify the session that 
+        the test client uses.  Once the ``with`` block is left the session is 
+        stored back. 
+ 
+        :: 
+ 
+            with client.session_transaction() as session: 
+                session['value'] = 42 
+ 
+        Internally this is implemented by going through a temporary test 
+        request context and since session handling could depend on 
+        request variables this function accepts the same arguments as 
+        :meth:`~flask.Flask.test_request_context` which are directly 
+        passed through. 
+        &quot;&quot;&quot;</span>
+        <span class="s0">if </span><span class="s1">self.cookie_jar </span><span class="s0">is None</span><span class="s1">:</span>
+            <span class="s0">raise </span><span class="s1">RuntimeError(</span>
+                <span class="s3">&quot;Session transactions only make sense with cookies enabled.&quot;</span>
+            <span class="s1">)</span>
+        <span class="s1">app = self.application</span>
+        <span class="s1">environ_overrides = kwargs.setdefault(</span><span class="s3">&quot;environ_overrides&quot;</span><span class="s0">, </span><span class="s1">{})</span>
+        <span class="s1">self.cookie_jar.inject_wsgi(environ_overrides)</span>
+        <span class="s1">outer_reqctx = _request_ctx_stack.top</span>
+        <span class="s0">with </span><span class="s1">app.test_request_context(*args</span><span class="s0">, </span><span class="s1">**kwargs) </span><span class="s0">as </span><span class="s1">c:</span>
+            <span class="s1">session_interface = app.session_interface</span>
+            <span class="s1">sess = session_interface.open_session(app</span><span class="s0">, </span><span class="s1">c.request)</span>
+            <span class="s0">if </span><span class="s1">sess </span><span class="s0">is None</span><span class="s1">:</span>
+                <span class="s0">raise </span><span class="s1">RuntimeError(</span>
+                    <span class="s3">&quot;Session backend did not open a session. Check the configuration&quot;</span>
+                <span class="s1">)</span>
+
+            <span class="s5"># Since we have to open a new request context for the session</span>
+            <span class="s5"># handling we want to make sure that we hide out own context</span>
+            <span class="s5"># from the caller.  By pushing the original request context</span>
+            <span class="s5"># (or None) on top of this and popping it we get exactly that</span>
+            <span class="s5"># behavior.  It's important to not use the push and pop</span>
+            <span class="s5"># methods of the actual request context object since that would</span>
+            <span class="s5"># mean that cleanup handlers are called</span>
+            <span class="s1">_request_ctx_stack.push(outer_reqctx)</span>
+            <span class="s0">try</span><span class="s1">:</span>
+                <span class="s0">yield </span><span class="s1">sess</span>
+            <span class="s0">finally</span><span class="s1">:</span>
+                <span class="s1">_request_ctx_stack.pop()</span>
+
+            <span class="s1">resp = app.response_class()</span>
+            <span class="s0">if not </span><span class="s1">session_interface.is_null_session(sess):</span>
+                <span class="s1">session_interface.save_session(app</span><span class="s0">, </span><span class="s1">sess</span><span class="s0">, </span><span class="s1">resp)</span>
+            <span class="s1">headers = resp.get_wsgi_headers(c.request.environ)</span>
+            <span class="s1">self.cookie_jar.extract_wsgi(c.request.environ</span><span class="s0">, </span><span class="s1">headers)</span>
+
+    <span class="s0">def </span><span class="s1">open(  </span><span class="s5"># type: ignore</span>
+        <span class="s1">self</span><span class="s0">,</span>
+        <span class="s1">*args: t.Any</span><span class="s0">,</span>
+        <span class="s1">as_tuple: bool = </span><span class="s0">False,</span>
+        <span class="s1">buffered: bool = </span><span class="s0">False,</span>
+        <span class="s1">follow_redirects: bool = </span><span class="s0">False,</span>
+        <span class="s1">**kwargs: t.Any</span><span class="s0">,</span>
+    <span class="s1">) -&gt; </span><span class="s3">&quot;Response&quot;</span><span class="s1">:</span>
+        <span class="s5"># Same logic as super.open, but apply environ_base and preserve_context.</span>
+        <span class="s1">request = </span><span class="s0">None</span>
+
+        <span class="s0">def </span><span class="s1">copy_environ(other):</span>
+            <span class="s0">return </span><span class="s1">{</span>
+                <span class="s1">**self.environ_base</span><span class="s0">,</span>
+                <span class="s1">**other</span><span class="s0">,</span>
+                <span class="s3">&quot;flask._preserve_context&quot;</span><span class="s1">: self.preserve_context</span><span class="s0">,</span>
+            <span class="s1">}</span>
+
+        <span class="s0">if not </span><span class="s1">kwargs </span><span class="s0">and </span><span class="s1">len(args) == </span><span class="s6">1</span><span class="s1">:</span>
+            <span class="s1">arg = args[</span><span class="s6">0</span><span class="s1">]</span>
+
+            <span class="s0">if </span><span class="s1">isinstance(arg</span><span class="s0">, </span><span class="s1">werkzeug.test.EnvironBuilder):</span>
+                <span class="s1">builder = copy(arg)</span>
+                <span class="s1">builder.environ_base = copy_environ(builder.environ_base </span><span class="s0">or </span><span class="s1">{})</span>
+                <span class="s1">request = builder.get_request()</span>
+            <span class="s0">elif </span><span class="s1">isinstance(arg</span><span class="s0">, </span><span class="s1">dict):</span>
+                <span class="s1">request = EnvironBuilder.from_environ(</span>
+                    <span class="s1">arg</span><span class="s0">, </span><span class="s1">app=self.application</span><span class="s0">, </span><span class="s1">environ_base=copy_environ({})</span>
+                <span class="s1">).get_request()</span>
+            <span class="s0">elif </span><span class="s1">isinstance(arg</span><span class="s0">, </span><span class="s1">BaseRequest):</span>
+                <span class="s1">request = copy(arg)</span>
+                <span class="s1">request.environ = copy_environ(request.environ)</span>
+
+        <span class="s0">if </span><span class="s1">request </span><span class="s0">is None</span><span class="s1">:</span>
+            <span class="s1">kwargs[</span><span class="s3">&quot;environ_base&quot;</span><span class="s1">] = copy_environ(kwargs.get(</span><span class="s3">&quot;environ_base&quot;</span><span class="s0">, </span><span class="s1">{}))</span>
+            <span class="s1">builder = EnvironBuilder(self.application</span><span class="s0">, </span><span class="s1">*args</span><span class="s0">, </span><span class="s1">**kwargs)</span>
+
+            <span class="s0">try</span><span class="s1">:</span>
+                <span class="s1">request = builder.get_request()</span>
+            <span class="s0">finally</span><span class="s1">:</span>
+                <span class="s1">builder.close()</span>
+
+        <span class="s0">return </span><span class="s1">super().open(  </span><span class="s5"># type: ignore</span>
+            <span class="s1">request</span><span class="s0">,</span>
+            <span class="s1">as_tuple=as_tuple</span><span class="s0">,</span>
+            <span class="s1">buffered=buffered</span><span class="s0">,</span>
+            <span class="s1">follow_redirects=follow_redirects</span><span class="s0">,</span>
+        <span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">__enter__(self) -&gt; </span><span class="s3">&quot;FlaskClient&quot;</span><span class="s1">:</span>
+        <span class="s0">if </span><span class="s1">self.preserve_context:</span>
+            <span class="s0">raise </span><span class="s1">RuntimeError(</span><span class="s3">&quot;Cannot nest client invocations&quot;</span><span class="s1">)</span>
+        <span class="s1">self.preserve_context = </span><span class="s0">True</span>
+        <span class="s0">return </span><span class="s1">self</span>
+
+    <span class="s0">def </span><span class="s1">__exit__(</span>
+        <span class="s1">self</span><span class="s0">, </span><span class="s1">exc_type: type</span><span class="s0">, </span><span class="s1">exc_value: BaseException</span><span class="s0">, </span><span class="s1">tb: TracebackType</span>
+    <span class="s1">) -&gt; </span><span class="s0">None</span><span class="s1">:</span>
+        <span class="s1">self.preserve_context = </span><span class="s0">False</span>
+
+        <span class="s5"># Normally the request context is preserved until the next</span>
+        <span class="s5"># request in the same thread comes. When the client exits we</span>
+        <span class="s5"># want to clean up earlier. Pop request contexts until the stack</span>
+        <span class="s5"># is empty or a non-preserved one is found.</span>
+        <span class="s0">while True</span><span class="s1">:</span>
+            <span class="s1">top = _request_ctx_stack.top</span>
+
+            <span class="s0">if </span><span class="s1">top </span><span class="s0">is not None and </span><span class="s1">top.preserved:</span>
+                <span class="s1">top.pop()</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s0">break</span>
+
+
+<span class="s0">class </span><span class="s1">FlaskCliRunner(CliRunner):</span>
+    <span class="s2">&quot;&quot;&quot;A :class:`~click.testing.CliRunner` for testing a Flask app's 
+    CLI commands. Typically created using 
+    :meth:`~flask.Flask.test_cli_runner`. See :ref:`testing-cli`. 
+    &quot;&quot;&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__init__(self</span><span class="s0">, </span><span class="s1">app: </span><span class="s3">&quot;Flask&quot;</span><span class="s0">, </span><span class="s1">**kwargs: t.Any) -&gt; </span><span class="s0">None</span><span class="s1">:</span>
+        <span class="s1">self.app = app</span>
+        <span class="s1">super().__init__(**kwargs)</span>
+
+    <span class="s0">def </span><span class="s1">invoke(  </span><span class="s5"># type: ignore</span>
+        <span class="s1">self</span><span class="s0">, </span><span class="s1">cli: t.Any = </span><span class="s0">None, </span><span class="s1">args: t.Any = </span><span class="s0">None, </span><span class="s1">**kwargs: t.Any</span>
+    <span class="s1">) -&gt; t.Any:</span>
+        <span class="s2">&quot;&quot;&quot;Invokes a CLI command in an isolated environment. See 
+        :meth:`CliRunner.invoke &lt;click.testing.CliRunner.invoke&gt;` for 
+        full method documentation. See :ref:`testing-cli` for examples. 
+ 
+        If the ``obj`` argument is not given, passes an instance of 
+        :class:`~flask.cli.ScriptInfo` that knows how to load the Flask 
+        app being tested. 
+ 
+        :param cli: Command object to invoke. Default is the app's 
+            :attr:`~flask.app.Flask.cli` group. 
+        :param args: List of strings to invoke the command with. 
+ 
+        :return: a :class:`~click.testing.Result` object. 
+        &quot;&quot;&quot;</span>
+        <span class="s0">if </span><span class="s1">cli </span><span class="s0">is None</span><span class="s1">:</span>
+            <span class="s1">cli = self.app.cli</span>
+
+        <span class="s0">if </span><span class="s3">&quot;obj&quot; </span><span class="s0">not in </span><span class="s1">kwargs:</span>
+            <span class="s1">kwargs[</span><span class="s3">&quot;obj&quot;</span><span class="s1">] = ScriptInfo(create_app=</span><span class="s0">lambda</span><span class="s1">: self.app)</span>
+
+        <span class="s0">return </span><span class="s1">super().invoke(cli</span><span class="s0">, </span><span class="s1">args</span><span class="s0">, </span><span class="s1">**kwargs)</span>
+</pre>
+</body>
+</html>

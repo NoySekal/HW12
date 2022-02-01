@@ -1,0 +1,11 @@
+<header>
+
+    <a href="/Catalog">Catalog</a> |<a href="/users">Users</a> | <a href="/">Home</a> | <a href="/About">About</a>
+    | <a href="/CV">CV</a> | <a href="/assignment9">Assignment 9</a>   | <a href="/assignment10">Assignment 10</a>
+    |  <a href="/assignment11/users">Assignment 11.1</a> | <a href="/assignment11/outer_source">Assignment 11.2</a>
+    |  <a href="/assignment12/restapi_users">Assignment 12</a> |
+    {% if session.UserName %}
+        | Login {{ session.UserName }}|
+         <a href="/logout">Log out</a>
+    {% endif %}
+</header>

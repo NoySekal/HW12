@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}
+    blah
+{% endblock %}
+{% block tohen %}
+    {{ super() }}
+    <div class="content">
+        <h3>Frontend</h3>
+        <input type="number" name="number" id="f_number"/>
+        <button onclick="Click_funk()">Click me</button>
+        <script src="../static/js/assignment11.js"></script>
+        <h3>Backend</h3>
+        <form action="/assignment11/outer_source" method="get">
+            <input type="number" name="number" id="b_number"/>
+            <input type="submit" value=click">
+        </form>
+
+    <br><br>
+    <main>
+        {% if user %}
+                <img src="{{ user.avatar }}" alt="Profile Picture"/>
+                <div>
+                    <span>{{ user.name }}</span>
+                    <br>
+                    <a href="mailto:{{ user.email }}">Send Email</a>
+                    <br><br>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+    {% endblock %}

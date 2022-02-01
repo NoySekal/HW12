@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} {% endblock %}</title>
+</head>
+<body>
+{% include 'Header.html' %}
+<hr>
+{% block tohen %}
+<h5>Message from base.html</h5>
+{% endblock %}
+</body>
+</html>

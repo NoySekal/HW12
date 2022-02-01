@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}
+    About
+{% endblock %}
+{% block tohen %}
+    {{ super() }}
+        <h1> About me...</h1>
+    {% for key, value in profile.items() %}
+        <h2>{{ key }}: {{ value | upper() }}</h2>
+        <br/>
+    {% endfor%}
+
+    {%  if name %}
+        <h2>Welcome</h2>
+    {% else %}
+        <h2>Please sing in</h2>
+    {% endif %}
+    <h2>University: {{ university | default('unspecified')}} </h2>
+    <h2>Degrees</h2>
+    <ol>
+       {% for degree in degrees %}
+            <li>{{  degree }}</li>
+        {% endfor %}
+    </ol>
+    <h2>Hobbies</h2>
+    <ul>
+        {% for hobby in hobbies %}
+            <li>{{  hobby }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

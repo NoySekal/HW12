@@ -1,0 +1,181 @@
+<html>
+<head>
+<title>_utils.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6897bb;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+_utils.py</font>
+</center></td></tr></table>
+<pre><span class="s0"># Copyright 2016 Julien Danjou</span>
+<span class="s0"># Copyright 2016 Joshua Harlow</span>
+<span class="s0"># Copyright 2013-2014 Ray Holder</span>
+<span class="s0">#</span>
+<span class="s0"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="s0"># you may not use this file except in compliance with the License.</span>
+<span class="s0"># You may obtain a copy of the License at</span>
+<span class="s0">#</span>
+<span class="s0"># http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="s0">#</span>
+<span class="s0"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="s0"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="s0"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="s0"># See the License for the specific language governing permissions and</span>
+<span class="s0"># limitations under the License.</span>
+
+<span class="s2">import </span><span class="s1">inspect</span>
+<span class="s2">import </span><span class="s1">sys</span>
+<span class="s2">import </span><span class="s1">time</span>
+<span class="s2">from </span><span class="s1">functools </span><span class="s2">import </span><span class="s1">update_wrapper</span>
+
+<span class="s2">from </span><span class="s1">pip._vendor </span><span class="s2">import </span><span class="s1">six</span>
+
+<span class="s0"># sys.maxint / 2, since Python 3.2 doesn't have a sys.maxint...</span>
+<span class="s2">try</span><span class="s1">:</span>
+    <span class="s1">MAX_WAIT = sys.maxint / </span><span class="s3">2</span>
+<span class="s2">except </span><span class="s1">AttributeError:</span>
+    <span class="s1">MAX_WAIT = </span><span class="s3">1073741823</span>
+
+
+<span class="s2">if </span><span class="s1">six.PY2:</span>
+    <span class="s2">from </span><span class="s1">functools </span><span class="s2">import </span><span class="s1">WRAPPER_ASSIGNMENTS</span><span class="s2">, </span><span class="s1">WRAPPER_UPDATES</span>
+
+    <span class="s2">def </span><span class="s1">wraps(fn):</span>
+        <span class="s4">&quot;&quot;&quot;Do the same as six.wraps but only copy attributes that exist. 
+ 
+        For example, object instances don't have __name__ attribute, so 
+        six.wraps fails. This is fixed in Python 3 
+        (https://bugs.python.org/issue3445), but didn't get backported to six. 
+ 
+        Also, see https://github.com/benjaminp/six/issues/250. 
+        &quot;&quot;&quot;</span>
+
+        <span class="s2">def </span><span class="s1">filter_hasattr(obj</span><span class="s2">, </span><span class="s1">attrs):</span>
+            <span class="s2">return </span><span class="s1">tuple(a </span><span class="s2">for </span><span class="s1">a </span><span class="s2">in </span><span class="s1">attrs </span><span class="s2">if </span><span class="s1">hasattr(obj</span><span class="s2">, </span><span class="s1">a))</span>
+
+        <span class="s2">return </span><span class="s1">six.wraps(</span>
+            <span class="s1">fn</span><span class="s2">,</span>
+            <span class="s1">assigned=filter_hasattr(fn</span><span class="s2">, </span><span class="s1">WRAPPER_ASSIGNMENTS)</span><span class="s2">,</span>
+            <span class="s1">updated=filter_hasattr(fn</span><span class="s2">, </span><span class="s1">WRAPPER_UPDATES)</span><span class="s2">,</span>
+        <span class="s1">)</span>
+
+    <span class="s2">def </span><span class="s1">capture(fut</span><span class="s2">, </span><span class="s1">tb):</span>
+        <span class="s0"># TODO(harlowja): delete this in future, since its</span>
+        <span class="s0"># has to repeatedly calculate this crap.</span>
+        <span class="s1">fut.set_exception_info(tb[</span><span class="s3">1</span><span class="s1">]</span><span class="s2">, </span><span class="s1">tb[</span><span class="s3">2</span><span class="s1">])</span>
+
+    <span class="s2">def </span><span class="s1">getargspec(func):</span>
+        <span class="s0"># This was deprecated in Python 3.</span>
+        <span class="s2">return </span><span class="s1">inspect.getargspec(func)</span>
+
+
+<span class="s2">else</span><span class="s1">:</span>
+    <span class="s2">from </span><span class="s1">functools </span><span class="s2">import </span><span class="s1">wraps  </span><span class="s0"># noqa</span>
+
+    <span class="s2">def </span><span class="s1">capture(fut</span><span class="s2">, </span><span class="s1">tb):</span>
+        <span class="s1">fut.set_exception(tb[</span><span class="s3">1</span><span class="s1">])</span>
+
+    <span class="s2">def </span><span class="s1">getargspec(func):</span>
+        <span class="s2">return </span><span class="s1">inspect.getfullargspec(func)</span>
+
+
+<span class="s2">def </span><span class="s1">visible_attrs(obj</span><span class="s2">, </span><span class="s1">attrs=</span><span class="s2">None</span><span class="s1">):</span>
+    <span class="s2">if </span><span class="s1">attrs </span><span class="s2">is None</span><span class="s1">:</span>
+        <span class="s1">attrs = {}</span>
+    <span class="s2">for </span><span class="s1">attr_name</span><span class="s2">, </span><span class="s1">attr </span><span class="s2">in </span><span class="s1">inspect.getmembers(obj):</span>
+        <span class="s2">if </span><span class="s1">attr_name.startswith(</span><span class="s5">&quot;_&quot;</span><span class="s1">):</span>
+            <span class="s2">continue</span>
+        <span class="s1">attrs[attr_name] = attr</span>
+    <span class="s2">return </span><span class="s1">attrs</span>
+
+
+<span class="s2">def </span><span class="s1">find_ordinal(pos_num):</span>
+    <span class="s0"># See: https://en.wikipedia.org/wiki/English_numerals#Ordinal_numbers</span>
+    <span class="s2">if </span><span class="s1">pos_num == </span><span class="s3">0</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s5">&quot;th&quot;</span>
+    <span class="s2">elif </span><span class="s1">pos_num == </span><span class="s3">1</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s5">&quot;st&quot;</span>
+    <span class="s2">elif </span><span class="s1">pos_num == </span><span class="s3">2</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s5">&quot;nd&quot;</span>
+    <span class="s2">elif </span><span class="s1">pos_num == </span><span class="s3">3</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s5">&quot;rd&quot;</span>
+    <span class="s2">elif </span><span class="s1">pos_num &gt;= </span><span class="s3">4 </span><span class="s2">and </span><span class="s1">pos_num &lt;= </span><span class="s3">20</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s5">&quot;th&quot;</span>
+    <span class="s2">else</span><span class="s1">:</span>
+        <span class="s2">return </span><span class="s1">find_ordinal(pos_num % </span><span class="s3">10</span><span class="s1">)</span>
+
+
+<span class="s2">def </span><span class="s1">to_ordinal(pos_num):</span>
+    <span class="s2">return </span><span class="s5">&quot;%i%s&quot; </span><span class="s1">% (pos_num</span><span class="s2">, </span><span class="s1">find_ordinal(pos_num))</span>
+
+
+<span class="s2">def </span><span class="s1">get_callback_name(cb):</span>
+    <span class="s4">&quot;&quot;&quot;Get a callback fully-qualified name. 
+ 
+    If no name can be produced ``repr(cb)`` is called and returned. 
+    &quot;&quot;&quot;</span>
+    <span class="s1">segments = []</span>
+    <span class="s2">try</span><span class="s1">:</span>
+        <span class="s1">segments.append(cb.__qualname__)</span>
+    <span class="s2">except </span><span class="s1">AttributeError:</span>
+        <span class="s2">try</span><span class="s1">:</span>
+            <span class="s1">segments.append(cb.__name__)</span>
+            <span class="s2">if </span><span class="s1">inspect.ismethod(cb):</span>
+                <span class="s2">try</span><span class="s1">:</span>
+                    <span class="s0"># This attribute doesn't exist on py3.x or newer, so</span>
+                    <span class="s0"># we optionally ignore it... (on those versions of</span>
+                    <span class="s0"># python `__qualname__` should have been found anyway).</span>
+                    <span class="s1">segments.insert(</span><span class="s3">0</span><span class="s2">, </span><span class="s1">cb.im_class.__name__)</span>
+                <span class="s2">except </span><span class="s1">AttributeError:</span>
+                    <span class="s2">pass</span>
+        <span class="s2">except </span><span class="s1">AttributeError:</span>
+            <span class="s2">pass</span>
+    <span class="s2">if not </span><span class="s1">segments:</span>
+        <span class="s2">return </span><span class="s1">repr(cb)</span>
+    <span class="s2">else</span><span class="s1">:</span>
+        <span class="s2">try</span><span class="s1">:</span>
+            <span class="s0"># When running under sphinx it appears this can be none?</span>
+            <span class="s2">if </span><span class="s1">cb.__module__:</span>
+                <span class="s1">segments.insert(</span><span class="s3">0</span><span class="s2">, </span><span class="s1">cb.__module__)</span>
+        <span class="s2">except </span><span class="s1">AttributeError:</span>
+            <span class="s2">pass</span>
+        <span class="s2">return </span><span class="s5">&quot;.&quot;</span><span class="s1">.join(segments)</span>
+
+
+<span class="s2">try</span><span class="s1">:</span>
+    <span class="s1">now = time.monotonic  </span><span class="s0"># noqa</span>
+<span class="s2">except </span><span class="s1">AttributeError:</span>
+    <span class="s2">from </span><span class="s1">monotonic </span><span class="s2">import </span><span class="s1">monotonic </span><span class="s2">as </span><span class="s1">now  </span><span class="s0"># noqa</span>
+
+
+<span class="s2">class </span><span class="s1">cached_property(object):</span>
+    <span class="s5">&quot;&quot;&quot;A property that is computed once per instance. 
+ 
+    Upon being computed it replaces itself with an ordinary attribute. Deleting 
+    the attribute resets the property. 
+ 
+    Source: https://github.com/bottlepy/bottle/blob/1de24157e74a6971d136550afe1b63eec5b0df2b/bottle.py#L234-L246 
+    &quot;&quot;&quot;  </span><span class="s0"># noqa: E501</span>
+
+    <span class="s2">def </span><span class="s1">__init__(self</span><span class="s2">, </span><span class="s1">func):</span>
+        <span class="s1">update_wrapper(self</span><span class="s2">, </span><span class="s1">func)</span>
+        <span class="s1">self.func = func</span>
+
+    <span class="s2">def </span><span class="s1">__get__(self</span><span class="s2">, </span><span class="s1">obj</span><span class="s2">, </span><span class="s1">cls):</span>
+        <span class="s2">if </span><span class="s1">obj </span><span class="s2">is None</span><span class="s1">:</span>
+            <span class="s2">return </span><span class="s1">self</span>
+        <span class="s1">value = obj.__dict__[self.func.__name__] = self.func(obj)</span>
+        <span class="s2">return </span><span class="s1">value</span>
+</pre>
+</body>
+</html>
